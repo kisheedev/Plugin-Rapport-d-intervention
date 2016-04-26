@@ -45,9 +45,10 @@ function plugin_rapportinter_install()
         $query = "CREATE TABLE `glpi_plugin_rapportinter_rapport` (
         `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
         `id_ticket` int(11) NOT NULL,
-        `temps_total` double(3,2) NOT NULL,
+        `Observation` TEXT ,
+        `Signature` TEXT NOT NULL,
         `PDF_chemin` TEXT NOT NULL
-        )ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
+        )ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
         $DB->query($query) or die($DB->error());
         }      
     return true ;

@@ -25,7 +25,7 @@ function Header()
     // Titre
     $this->Cell(0,20,'Compte rendu d\'intervention',1,0,'C');
     // Saut de ligne
-    $this->Ln(25);
+    $this->Ln(15);
 }
 
 // Pied de page
@@ -90,7 +90,7 @@ function haut_ticket()
 		$this->ajout_ligne(0,5,"Description :",'L',true,true);
 		$this->MultiCell(0,5,utf8_decode($description),1,false);
 
-		$this->Ln(10);
+		$this->Ln(5);
 }
 function get_user($id){
 	$sql="SELECT realname,firstname FROM glpi_users WHERE id=$id";
@@ -107,7 +107,7 @@ function tache_ticket($date,$time,$redacteur,$description)
 	$this->ajout_ligne(63,5,"Date :",'L',true,false);
 	$this->ajout_ligne(63,5,"Durée :",'L',true,false);
 	$this->ajout_ligne(64,5,"Rédacteur :",'L',true,true);
-	$this->ajout_ligne(63,5,  convertit_date_FR($date),'L',false,false);
+	$this->ajout_ligne(63,5, $this->convertit_date_FR($date),'L',false,false);
 	$this->ajout_ligne(63,5,$time,'L',false,false);
 	$this->ajout_ligne(64,5,$redacteur,'L',false,true);
 	$this->ajout_ligne(0,5,"Description :",'L',true,true);
@@ -127,7 +127,7 @@ function affiche_toutes_les_taches(){
 		$dateend=new DateTime($row['end']);
 		$time=$dateend->diff($datebegin);
 		$user_id=$row['users_id'];
-		$this->tache_ticket($date,$time->format('%d jours %hh %mmin'),get_user($user_id),$description);
+		$this->tache_ticket($date,$time->format('%d jours %hh %mmin'),  $this->get_user($user_id),$description);
 	}	
 	
 

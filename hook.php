@@ -48,7 +48,7 @@ function plugin_rapportinter_install()
         `Observation` TEXT ,
         `Signature` TEXT NOT NULL,
         `PDF_chemin` TEXT NOT NULL
-        )ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
+        )ENGINE=MyISAM ";
         $DB->query($query) or die($DB->error());
         }      
     return true ;

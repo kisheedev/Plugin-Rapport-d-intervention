@@ -64,7 +64,7 @@ class PluginRapportinterTicket extends CommonDBTM
                                             alert('Veuillez entrez une signature..');
                                         }
                                         else {
-                                            var sigData=$('#signature').jSignature('getData','base30');
+                                            var sigData=$('#signature').jSignature('getData','svg');
                                             $('#sigdata').val(sigData);
                                         }
                                     });                                   

@@ -16,7 +16,6 @@ function plugin_init_rapportinter()
    
     Plugin::registerClass('PluginRapportinterTicket' , array('addtabon' => 'Ticket'));     //LIGNE POUR ONGLET TICKET 
     Plugin::registerClass('PluginRapportinterProfile', array('addtabon' =>'Profile'));     //LIGNE POUR ONGLET PROFILE
-
     }   
     
     

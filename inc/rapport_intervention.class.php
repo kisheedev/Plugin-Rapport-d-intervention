@@ -1,7 +1,7 @@
 <?php
-require('../lib/FPDF/fpdf.php');
+require('../lib/tcpdf/tcpdf_import.php');
 include('../../../inc/includes.php');
-class PDF extends FPDF
+class PDF extends TCPDF
 {
     private $id;
     private $observation;
@@ -17,15 +17,12 @@ function __construct($id, $observation='', $sig, $orientation = 'P', $unit = 'mm
 function Header()
 {
     // Logo
-    $this->Image('../pics/logo.png',15,6,30);
+    $this->Image('../pics/logo.png',15,5,30,30,'PNG');
     // Police Arial gras 15
-    $this->SetFont('Arial','B',15);
-    // Décalage à droite
-    //$this->Cell(80);
+    $this->SetFont('helvetica','B',15);
     // Titre
-    $this->Cell(0,20,'Compte rendu d\'intervention',1,0,'C');
-    // Saut de ligne
-    $this->Ln(15);
+    $this->Cell(0,20,'Compte rendu d\'intervention',1,1,'C');
+
 }
 
 // Pied de page
@@ -34,9 +31,9 @@ function Footer()
     // Positionnement à 1,5 cm du bas
     $this->SetY(-15);
     // Police Arial italique 8
-    $this->SetFont('Arial','I',8);
+    $this->SetFont('helvetica','I',8);
     // Numéro de page
-    $this->Cell(0,10,'Page '.$this->PageNo().'/{nb}',0,0,'C');
+    $this->Cell(0,10,'Page '.$this->PageNo().'/'.$this->numpages,0,0,'C');
 }
 
 
@@ -88,7 +85,8 @@ function haut_ticket()
 		
 		$this->Ln(5);
 		$this->ajout_ligne(0,5,"Description :",'L',true,true);
-		$this->MultiCell(0,5,utf8_decode($description),1,false);
+                $description=  htmlspecialchars_decode($description);
+		$this->MultiCell(0,5,$description,1,false);
 
 		$this->Ln(5);
 }
@@ -104,14 +102,15 @@ function get_user($id){
 
 function tache_ticket($date,$time,$redacteur,$description)
 {
-	$this->ajout_ligne(63,5,"Date :",'L',true,false);
-	$this->ajout_ligne(63,5,"Durée :",'L',true,false);
-	$this->ajout_ligne(64,5,"Rédacteur :",'L',true,true);
-	$this->ajout_ligne(63,5, $this->convertit_date_FR($date),'L',false,false);
-	$this->ajout_ligne(63,5,$time,'L',false,false);
-	$this->ajout_ligne(64,5,$redacteur,'L',false,true);
-	$this->ajout_ligne(0,5,"Description :",'L',true,true);
-	$this->MultiCell(0,5,utf8_decode($description),1,false);
+	$this->ajout_ligne(15,5,"Date :",'L',true,false);
+        $this->ajout_ligne(40,5, $this->convertit_date_FR($date),'L',false,false);
+	$this->ajout_ligne(16,5,"Durée :",'L',true,false);
+        $this->ajout_ligne(35,5,$time,'L',false,false);
+	$this->ajout_ligne(23,5,"Rédacteur :",'L',true,false);
+	$this->ajout_ligne(61,5,$redacteur,'L',false,true);
+
+        $description=  htmlspecialchars_decode($description);
+	$this->MultiCell(0,5,"Description : ".$description,1,false);
 }
 
 function affiche_toutes_les_taches(){
@@ -134,7 +133,7 @@ function affiche_toutes_les_taches(){
 }
 
 function ajout_ligne($larg,$haut,$text,$aligne,$b,$retourligne){
-		$this->Cell($larg,$haut,utf8_decode($text),1,0,$aligne,$b);
+		$this->Cell($larg,$haut,$text,1,0,$aligne,$b);
 		if ($retourligne == true) {
                     $this->Ln();
                 }
@@ -152,11 +151,10 @@ function fin_de_page(){
 	$this->Ln(10);
 	$this->ajout_ligne(0,5,"Observations du client :",'C',true,true);
 	$this->MultiCell(0,5,$this->observation,1,false);
-		
-	$this->ajout_ligne(0,5,"Signature du client :",'C',true,true);
-	$this->ajout_ligne(0,30,$this->sig,'L',false,true);
 
-
+	$this->ajout_ligne(0,5,"Signature du client :",'C',true,true);    
+        $this->ajout_ligne(0, 30, '','', false, false);
+	$this->ImageSVG("../files/sig.svg",'','',60,30,'','','C',0);
 }
 }
 ?>

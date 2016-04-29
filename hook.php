@@ -37,20 +37,7 @@ function plugin_rapportinter_install()
         include_once(GLPI_ROOT."/plugins/rapportinter/inc/profile.class.php");
         PluginRapportinterProfile::createAdminAccess($_SESSION['glpiactiveprofile']['id']);
         }   
-        
-    // Création de la table uniquement lors de la première installation
-    if (!TableExists("glpi_plugin_rapportinter_rapport")) 
-        {
-        // Création de la table des rapports
-        $query = "CREATE TABLE `glpi_plugin_rapportinter_rapport` (
-        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-        `id_ticket` int(11) NOT NULL,
-        `Observation` TEXT ,
-        `Signature` TEXT NOT NULL,
-        `PDF_chemin` TEXT NOT NULL
-        )ENGINE=MyISAM ";
-        $DB->query($query) or die($DB->error());
-        }      
+              
     return true ;
     }
     
@@ -62,7 +49,7 @@ function plugin_rapportinter_uninstall()
     {
     global $DB;
 
-    $tables = array("glpi_plugin_rapportinter_profiles", "glpi_plugin_rapportinter_rapport");
+    $tables = array("glpi_plugin_rapportinter_profiles");
 
     foreach($tables as $table) 
         {$DB->query("DROP TABLE IF EXISTS `$table`;");}

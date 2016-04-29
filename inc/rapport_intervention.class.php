@@ -1,28 +1,33 @@
 <?php
-require('../lib/tcpdf/tcpdf_import.php');
 include('../../../inc/includes.php');
+require(GLPI_ROOT.'/lib/tcpdf/tcpdf_import.php');
+
 class PDF extends TCPDF
 {
     private $id;
     private $observation;
     private $sig;
+    private $date;
             
-function __construct($id, $observation='', $sig, $orientation = 'P', $unit = 'mm', $size = 'A4') {
+function __construct($id, $observation='', $sig, $date, $orientation = 'P', $unit = 'mm', $size = 'A4') {
     parent::__construct($orientation, $unit, $size);
     $this->id=$id;
     $this->observation=$observation;
     $this->sig=$sig;
+    $this->date=$date;
 }
 // En-tête
 function Header()
 {
     // Logo
-    $this->Image('../pics/logo.png',15,5,30,30,'PNG');
+    $this->Cell(30,20,'',1);
+    $this->Image('../pics/logo.png',11,13,29,15,'PNG');
     // Police Arial gras 15
     $this->SetFont('helvetica','B',15);
     // Titre
-    $this->Cell(0,20,'Compte rendu d\'intervention',1,1,'C');
-
+    $this->Cell(130,20,'Compte rendu d\'intervention',1,0,'C');
+    $this->SetFont('helvetica','',9);
+    $this->MultiCell(30, 20, "Fait le :\n".$this->date,1,'C');
 }
 
 // Pied de page
@@ -154,7 +159,7 @@ function fin_de_page(){
 
 	$this->ajout_ligne(0,5,"Signature du client :",'C',true,true);    
         $this->ajout_ligne(0, 30, '','', false, false);
-	$this->ImageSVG("../files/sig.svg",'','',60,30,'','','C',0);
+	$this->ImageSVG(GLPI_ROOT."/files/PDF/sig.svg",'','',60,30,'','','C',0);
 }
 }
 ?>

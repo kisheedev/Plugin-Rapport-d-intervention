@@ -1,17 +1,20 @@
 <?php
-require('../lib/tcpdf/tcpdf_import.php');
 include('../../../inc/includes.php');
+require(GLPI_ROOT.'/lib/tcpdf/tcpdf_import.php');
+
 class PDF extends TCPDF
 {
 // En-tête
 function Header()
 {
     // Logo
-    $this->Image('../pics/logo.png',15,5,30,30,'PNG');
+    $this->Cell(30,20,'',1);
+    $this->Image('../pics/logo.png',11,13,29,15,'PNG');
     // Police Arial gras 15
     $this->SetFont('helvetica','B',15);
     // Titre
-    $this->Cell(0,20,'Compte rendu d\'intervention',1,1,'C');
+    $this->Cell(130,20,'Compte rendu d\'intervention',1,0,'C');
+    $this->Cell(30, 20,'',1);
 
 }
 

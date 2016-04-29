@@ -11,6 +11,7 @@
  *
  * @author h.melik
  */
+
 class PluginRapportinterTicket extends CommonDBTM
     {
     /**
@@ -37,7 +38,12 @@ class PluginRapportinterTicket extends CommonDBTM
         {
         if ($item->getType() == 'Ticket') 
             {
+                global $DB;
 		$id=$_GET['id'];
+                $sql="SELECT EXISTS( SELECT * FROM glpi_documents WHERE tickets_id=$id ) AS rapport ";
+                $res = $DB->query($sql) or die("error creating glpi_plugin_example_data ". $DB->error());
+   		$row = $DB->fetch_assoc($res);	
+                if($row['rapport']==0){
                 echo"  
                         <form method='POST' action='../plugins/rapportinter/front/export.php'> 
                             <input id='id_ticket' type='hidden' name='id'  value=$id />
@@ -72,6 +78,15 @@ class PluginRapportinterTicket extends CommonDBTM
                             </script>
                             <button type='submit' style='background-color:#FEC95C; color:#8f5a0a; padding:5px; margin:10px; font:bold 12px Arial, Helvetica' >Générer le rapport</button>
                         </form>";
+                }
+                else {
+                        $sql="SELECT id FROM glpi_documents WHERE tickets_id=$id";
+                        $res=$DB->query($sql);
+                        $row=$DB->fetch_assoc($res);
+                        $docid=$row['id'];
+                        echo " <iframe src='../front/document.send.php?docid=$docid' width='80%' height='1000' align='middle'></iframe>";
+                    
+                }
 
             }
         return true;

@@ -11,18 +11,19 @@ function plugin_init_rapportinter()
     global $PLUGIN_HOOKS;
 
     $PLUGIN_HOOKS['csrf_compliant']['rapportinter'] = true;
-    $PLUGIN_HOOKS['change_profile']['rapportinter'] = array('PluginRapportinterProfile','changeProfile');
 
    
     Plugin::registerClass('PluginRapportinterTicket' , array('addtabon' => 'Ticket'));     //LIGNE POUR ONGLET TICKET 
     Plugin::registerClass('PluginRapportinterProfile', array('addtabon' =>'Profile'));     //LIGNE POUR ONGLET PROFILE
+    $PLUGIN_HOOKS['change_profile']['rapportinter'] = array('PluginRapportinterProfile','changeProfile');
+
     }   
     
     
 function plugin_version_rapportinter() 
     {
     return array('name'           => "Rapport d'intervention",
-                 'version'        => '1.0',
+                 'version'        => '1.0.0',
                  'author'         => 'Hichem MELIK',
                  'license'        => 'GPLv3+',
                  'minGlpiVersion' => '0.90');

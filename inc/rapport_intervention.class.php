@@ -46,7 +46,7 @@ function haut_ticket()
 {
 		global $DB;
 		$this->setFillColor(180,180,180);
-		$this->Ln(5);
+		//$this->Ln(5);
 		$sql = "SELECT * FROM `glpi_tickets` WHERE id=".$this->id;
 		$res=$DB->query($sql) or die ("error creating glpi_plugin_example_data ". $DB->error());
 		$row = $DB->fetch_assoc($res);	
@@ -54,16 +54,16 @@ function haut_ticket()
 			$description=$row['content'];
 			$date_ouverture=$row['date'];
 			$date_close=$row['solvedate'];
-			$id_user=$row['users_id_recipient'];	
+                        $intervenant=$_SESSION['glpirealname'].' '.$_SESSION['glpifirstname'];
                         $id_entities=$row['entities_id'];
 			
-		$this->ajout_ligne(190,6,$titre,'C',true,true);
+		$this->ajout_ligne(190,5,$titre,'C',true,true);
 		
 		$this->ajout_ligne(50,5,"N° du ticket associée :",'L',true,false);
 		$this->ajout_ligne(0,5,$this->id,'L',false,true);
 		
 		$this->ajout_ligne(50,5,"Intervenant :",'L',true,false);
-		$this->ajout_ligne(0,5,$this->get_user($id_user),'L',false,true);
+		$this->ajout_ligne(0,5,$intervenant,'L',false,true);
 		
 		$this->ajout_ligne(50,5,"Date d'intervention :",'L',true,false);	
 		$this->ajout_ligne(10,5,"Du :",'L',true,false);
@@ -79,14 +79,17 @@ function haut_ticket()
                         $name=$row['name'];
                         $ville=$row['town'];
                         $pays=$row['country'];
-                        $comment=$row['comment'];
                         
 		$this->ajout_ligne(50,5,"Nom de la societé :",'L',true,false);
 		$this->ajout_ligne(0,5,$name,'L',false,true);
 		$this->ajout_ligne(50,5,"Ville :",'L',true,false);
 		$this->ajout_ligne(0,5,$ville.', '.$pays,'L',false,true);
-		$this->ajout_ligne(50,5,"Résponsable :",'L',true,false);
-		$this->ajout_ligne(0,5,$comment,'L',false,true);
+                
+                $sql="SELECT realname, firstname FROM glpi_users WHERE id=(SELECT users_id FROM `glpi_tickets_users` WHERE `tickets_id`=$this->id AND type=1)";
+                $res=$DB->query($sql);
+                $row=$DB->fetch_assoc($res);
+		$this->ajout_ligne(50,5,"Demandeur :",'L',true,false);
+		$this->ajout_ligne(0,5,$row['realname'].' '.$row['firstname'],'L',false,true);
 		
 		$this->Ln(5);
 		$this->ajout_ligne(0,5,"Description :",'L',true,true);
@@ -119,7 +122,7 @@ function tache_ticket($date,$time,$redacteur,$description)
 }
 
 function affiche_toutes_les_taches(){
-        $this->ajout_ligne(0,6,"Tâche(s) du ticket:",'C',true,true);
+        $this->ajout_ligne(0,5,"Tâche(s) du ticket:",'C',true,true);
 	
 	global $DB;
 	$sql="SELECT * FROM glpi_tickettasks WHERE tickets_id=$this->id";
@@ -159,7 +162,7 @@ function fin_de_page(){
 
 	$this->ajout_ligne(0,5,"Signature du client :",'C',true,true);    
         $this->ajout_ligne(0, 30, '','', false, false);
-	$this->ImageSVG(GLPI_ROOT."/files/PDF/sig.svg",'','',60,30,'','','C',0);
+	$this->ImageSVG(GLPI_ROOT."/files/_tmp/sig.svg",'','',60,30,'','','C',0);
 }
 }
 ?>

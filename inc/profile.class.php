@@ -10,45 +10,45 @@ class PluginRapportinterProfile extends CommonDBTM
      * @param type $withtemplate
      * @return boolean|string
      */
-  static function canCreate() {
+   static function canCreate() {
 
-      if (isset($_SESSION["glpi_plugin_rapportinter_profile"])) {
-         return ($_SESSION["glpi_plugin_rapportinter_profile"]['rapportinter'] == 'w');
+      if (isset($_SESSION["glpi_plugin_rapportinter_profiles"])) {
+         return ($_SESSION["glpi_plugin_rapportinter_profiles"]['right'] == '4');
       }
       return false;
    }
 
    static function canView() {
 
-      if (isset($_SESSION["glpi_plugin_rapportinter_profile"])) {
-         return ($_SESSION["glpi_plugin_rapportinter_profile"]['rapportinter'] == 'w'
-                 || $_SESSION["glpi_plugin_rapportinter_profile"]['rapportinter'] == 'r');
+      if (isset($_SESSION["glpi_plugin_rapportinter_profiles"])) {
+         return ($_SESSION["glpi_plugin_rapportinter_profiles"]["right"] == 4
+                 || $_SESSION["glpi_plugin_rapportinter_profiles"]["right"] == 1);
       }
       return false;
    }
-
    static function createAdminAccess($ID) {
 
-      $myProf = new self();
-    // si le profile n'existe pas déjà dans la table profile de mon plugin
-      if (!$myProf->getFromDB($ID)) {
-    // ajouter un champ dans la table comprenant l'ID du profil d la personne connecté et le droit d'écriture
-         $myProf->add(array('id' => $ID,
-                            'right'       => 'w'));
-      }
+       global $DB;
+       $myProf = new self();
+       // si le profile n'existe pas déjà dans la table profile de mon plugin
+       if (!$myProf->getFromDB($ID)) {
+       // ajouter un champ dans la table comprenant l'ID du profil d la personne connecté et le droit d'écriture
+            $sql="INSERT INTO glpi_plugin_rapportinter_profiles VALUES ('$ID','4')";
+            $DB->query($sql);
+       }
    }
-    function showForm($id, $options=array()) {
+   function showForm($id, $options=array()) {
 
       $target = $this->getFormURL();
       if (isset($options['target'])) {
         $target = $options['target'];
       }
 
-      if (!Session::haveRight("profile","r")) {
+      if (!self::canView()) {
          return false;
       }
 
-      $canedit = Session::haveRight("profile", "w");
+      $canedit = self::canCreate();
       $prof = new Profile();
       if ($id){
          $this->getFromDB($id);
@@ -83,28 +83,64 @@ class PluginRapportinterProfile extends CommonDBTM
 
       if ($item->getType() == 'Profile') {
          $prof = new self();
-            $ID = $item->getField('id');
+         $ID = $_GET['id'];
          // si le profil n'existe pas dans la base, je l'ajoute
          if (!$prof->GetfromDB($ID)) {
             $prof->createAccess($ID);
          }
-        // j'affiche le formulaire
+        // j'affiche le formulaire*/
          $prof->showForm($ID);
       }
       return true;
    }
    
    function createAccess($ID) {
-      $this->add(array('id' => $ID));
+        global $DB;
+        $sql="INSERT INTO glpi_plugin_rapportinter_profiles (`id`) VALUES ('$ID')";
+        $DB->query($sql);
 }
    static function changeProfile() {
 
    $prof = new self();
    if ($prof->getFromDB($_SESSION['glpiactiveprofile']['id'])) {
-      $_SESSION["glpi_plugin_rapportinter_profile"] = $prof->fields;
+      $_SESSION["glpi_plugin_rapportinter_profiles"] = $prof->fields;
    } else {
-      unset($_SESSION["glpi_plugin_rapportinter_profile"]);
+      unset($_SESSION["glpi_plugin_rapportinter_profiles"]);
    }
 }
+ function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+
+      if ($item->getType() == 'Profile') {
+         return "Rapport d'intervention";
+      }
+      return '';
+   }
+   
+static function PeutVoir() {
+       global $DB;
+       $ID=$_SESSION['glpiactiveprofile']['id'];
+       $sql="SELECT `right` FROM glpi_plugin_rapportinter_profiles WHERE id=$ID";
+       $res=$DB->query($sql);
+       if ($DB->numrows($res)>0){
+            $row=$DB->fetch_assoc($res);
+            if ($row['right'] == 4 || $row['right']==1)
+                return true;           
+       }
+      return false;
+      }
+
+             
+      static function PeutCree() {
+       global $DB;
+       $ID=$_SESSION['glpiactiveprofile']['id'];
+       $sql="SELECT `right` FROM glpi_plugin_rapportinter_profiles WHERE id=$ID";
+       $res=$DB->query($sql);
+       if ($DB->numrows($res)>0){
+            $row=$DB->fetch_assoc($res);
+            if ($row['right'] == '4')
+                return true;           
+       }
+      return false;
+      }
 }
 ?>

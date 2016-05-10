@@ -7,7 +7,6 @@
  */
 include ("../../../inc/includes.php");
 
-Session::checkRight("profile", "r");
 
 $prof = new PluginRapportinterProfile();
 

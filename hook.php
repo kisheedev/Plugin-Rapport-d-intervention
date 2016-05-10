@@ -25,12 +25,6 @@ function plugin_rapportinter_install()
                   ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
 
         $DB->query($query) or die($DB->error());
-
-        //création du premier accès nécessaire lors de l'installation du plugin
-        $id = $_SESSION['glpiactiveprofile']['id'];
-        $query = "INSERT INTO glpi_plugin_rapportinter_profiles VALUES ('$id','w')";
-
-        $DB->query($query) or die($DB->error());
         $migration->executeMigration();
 
         //creation du premier accès nécessaire lors de l'installation du plugin

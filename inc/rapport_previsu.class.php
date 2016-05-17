@@ -37,7 +37,7 @@ function haut_ticket()
 		$this->setFillColor(180,180,180);
 		//$this->Ln(5);
 		$sql = "SELECT * FROM `glpi_tickets` WHERE id=".$id;
-		$res=$DB->query($sql) or die ("error creating glpi_plugin_example_data ". $DB->error());
+		$res=$DB->query($sql) or die ($DB->error());
 		$row = $DB->fetch_assoc($res);	
 			$titre=$row['name'];
 			$description=$row['content'];
@@ -85,7 +85,11 @@ function haut_ticket()
                 $description=  htmlspecialchars_decode($description);
 		$this->MultiCell(0,5,$description,1,false);
 
-		$this->Ln(5);
+                $this->ajout_ligne(50,5,"Durée intervention :",'L',true,false);
+                $this->ajout_ligne(0,5,$_GET['realtime'],'L',false,true);
+                $this->Ln(5);
+
+
 }
 function get_user($id){
 	$sql="SELECT realname,firstname FROM glpi_users WHERE id=$id";
@@ -111,20 +115,27 @@ function tache_ticket($date,$time,$redacteur,$description)
 }
 
 function affiche_toutes_les_taches(){
-        $this->ajout_ligne(0,5,"Tâche(s) du ticket:",'C',true,true);
+        
 	$id=$_GET['id'];
+        $last_task=$_GET['last_task'];
 	global $DB;
-	$sql="SELECT * FROM glpi_tickettasks WHERE tickets_id=$id";
-	$res=$DB->query($sql) or die ("error creating glpi_plugin_example_data ". $DB->error());
-	while($row = $DB->fetch_assoc($res)){
-		$date=$row['date'];
-		$description=$row['content'];
-		$datebegin=new DateTime($row['begin']);
-		$dateend=new DateTime($row['end']);
-		$time=$dateend->diff($datebegin);
-		$user_id=$row['users_id'];
-		$this->tache_ticket($date,$time->format('%d jours %hh %mmin'),  $this->get_user($user_id),$description);
-	}	
+        if($last_task!=false)
+            $sql="SELECT * FROM glpi_tickettasks WHERE tickets_id=$id AND id>$last_task";
+        else $sql="SELECT * FROM glpi_tickettasks WHERE tickets_id=$id";
+	$res=$DB->query($sql) or die ($DB->error());
+       
+        if ($DB->numrows($res)>0){
+            $this->ajout_ligne(0,5,"Tâche(s) du ticket:",'C',true,true);
+            while($row = $DB->fetch_assoc($res)){
+                    $date=$row['date'];
+                    $description=$row['content'];
+
+                    date_default_timezone_set('UTC');
+                    $time=date('h\hi',$row['actiontime']);
+                    $user_id=$row['users_id'];
+                    $this->tache_ticket($date,$time,  $this->get_user($user_id),$description);
+            }
+        }
 	
 
 }

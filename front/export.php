@@ -20,17 +20,25 @@ $encoded=  htmlspecialchars_decode($encoded);
 $encoded=  str_replace("\\\\\\", "", $encoded);
 $date=date("d/m/Y \n à \n H:i");
 
+
+$realtime=  $_POST['realtime'];
+$last_task= $_POST['last_task'];
+
+
         $monfichier = fopen(GLPI_ROOT.'/files/_tmp/sig.svg', 'a+');
         fputs($monfichier, $encoded);
         $filename='rapport_'.$id.'_'.$d.'.pdf';
-        $name='RDI_'.$id.'_'.$d;
+        $name='RDI_'.$id;
         $filepath='PDF/rapport_'.$id.'_'.$d.'.pdf';
         $inter=$_SESSION['glpiID'];
         $query="INSERT INTO glpi_documents (name, filename, filepath, tickets_id, mime, date_mod, users_id) VALUES('$name', '$filename', '$filepath', '$id','application/pdf',NOW(),$inter )";
         
         if($DB->query($query) or die("error". $DB->error())){
-
-            $pdf=new PDF($id, $observation, $sig,$date);
+            
+            $sql="INSERT INTO `glpi_plugin_rapportinter_rdidetails`(ticket_id,realtime,date,technicians,name,filename) VALUES ('$id', '$realtime',NOW(),'$inter','$name','$filename') ";
+            $DB->query($sql) or die($DB->error());
+            //echo $realtime;
+            $pdf=new PDF($id, $observation, $sig,$date,$realtime,$last_task,$name);
             $pdf->setHeaderMargin(10);
             $pdf->SetMargins(10, 30);
             $pdf->AddPage();
@@ -41,8 +49,15 @@ $date=date("d/m/Y \n à \n H:i");
             $pdf->Output($chemin,'F');
             fclose($monfichier);
             unlink(GLPI_ROOT.'/files/_tmp/sig.svg');
+            envoi_mail($filename,$id);
+            header('Location:http://support.rsm-c.com/front/ticket.form.php?id='.$id);
             
-            
+}
+
+
+
+function envoi_mail($filename,$id){
+            global $DB;
             ini_set("SMTP","172.30.2.3"); 
             $sql="SELECT name FROM glpi_users WHERE id=(SELECT users_id FROM `glpi_tickets_users` WHERE `tickets_id`=$id AND type=1)";
             $res=$DB->query($sql) or die($DB->error());
@@ -83,9 +98,6 @@ $date=date("d/m/Y \n à \n H:i");
             $message .= "\n";  
             $message .= "--".$boundary."--";  
             mail($mail_to, $subject, $message, $entete); 
-
-            header('Location:http://support.rsm-c.com/front/ticket.form.php?id='.$id);
-            
 }
 
 ?>

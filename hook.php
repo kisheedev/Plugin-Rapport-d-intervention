@@ -30,8 +30,22 @@ function plugin_rapportinter_install()
         //creation du premier accès nécessaire lors de l'installation du plugin
         include_once(GLPI_ROOT."/plugins/rapportinter/inc/profile.class.php");
         PluginRapportinterProfile::createAdminAccess($_SESSION['glpiactiveprofile']['id']);
-        }   
-              
+        }  
+        if (!TableExists("glpi_plugin_rapportinter_rdidetails")) 
+        {
+        $query="CREATE TABLE `glpi_plugin_rapportinter_rdidetails` (
+	`ID` INT( 11 ) NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+        `ticket_id` int(11) NOT NULL,
+	`date` datetime,
+        `name` text NOT NULL,
+        `filename`text NOT NULL,
+        `tache_deja_fait` INT(11) default '0',
+	`realtime` decimal(20,2) default '0.00',
+	`technicians` varchar(255) collate utf8_unicode_ci NOT NULL default ''
+            ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
+        }  
+                $DB->query($query) or die($DB->error());
+
     return true ;
     }
     
@@ -43,7 +57,7 @@ function plugin_rapportinter_uninstall()
     {
     global $DB;
 
-    $tables = array("glpi_plugin_rapportinter_profiles");
+    $tables = array("glpi_plugin_rapportinter_profiles","glpi_plugin_rapportinter_rdidetails");
 
     foreach($tables as $table) 
         {$DB->query("DROP TABLE IF EXISTS `$table`;");}

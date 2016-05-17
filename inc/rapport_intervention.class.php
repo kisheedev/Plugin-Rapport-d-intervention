@@ -8,13 +8,19 @@ class PDF extends TCPDF
     private $observation;
     private $sig;
     private $date;
+    private $time;
+    private $last_task;
+    private $filename;
             
-function __construct($id, $observation='', $sig, $date, $orientation = 'P', $unit = 'mm', $size = 'A4') {
+function __construct($id, $observation='', $sig, $date,$time,$last_task,$filename, $orientation = 'P', $unit = 'mm', $size = 'A4') {
     parent::__construct($orientation, $unit, $size);
     $this->id=$id;
     $this->observation=$observation;
     $this->sig=$sig;
     $this->date=$date;
+    $this->time=$time;
+    $this->last_task=$last_task;
+    $this->filename=$filename;
 }
 // En-tête
 function Header()
@@ -96,7 +102,9 @@ function haut_ticket()
                 $description=  htmlspecialchars_decode($description);
 		$this->MultiCell(0,5,$description,1,false);
 
-		$this->Ln(5);
+                $this->ajout_ligne(50,5,"Durée intervention :",'L',true,false);
+                $this->ajout_ligne(0,5,  $this->time,'L',false,true);
+                $this->Ln(5);
 }
 function get_user($id){
 	$sql="SELECT realname,firstname FROM glpi_users WHERE id=$id";
@@ -122,21 +130,30 @@ function tache_ticket($date,$time,$redacteur,$description)
 }
 
 function affiche_toutes_les_taches(){
-        $this->ajout_ligne(0,5,"Tâche(s) du ticket:",'C',true,true);
 	
 	global $DB;
-	$sql="SELECT * FROM glpi_tickettasks WHERE tickets_id=$this->id";
-	$res=$DB->query($sql) or die ("error creating glpi_plugin_example_data ". $DB->error());
-	while($row = $DB->fetch_assoc($res)){
+        if($this->last_task==0)
+            $sql="SELECT * FROM glpi_tickettasks WHERE tickets_id=$this->id ORDER BY date ASC";       
+        else 
+             $sql="SELECT * FROM `glpi_tickettasks` WHERE tickets_id=$this->id AND id>$this->last_task ORDER BY date ASC";
+	$res=$DB->query($sql) or die ("probleme ici ". $DB->error());
+        
+        if ($DB->numrows($res)>0){
+            $this->ajout_ligne(0,5,"Tâche(s) du ticket:",'C',true,true);
+            while($row = $DB->fetch_assoc($res)){
 		$date=$row['date'];
 		$description=$row['content'];
-		$datebegin=new DateTime($row['begin']);
-		$dateend=new DateTime($row['end']);
-		$time=$dateend->diff($datebegin);
+                
+		date_default_timezone_set('UTC');
+		$time=date('h\hi',$row['actiontime']);
 		$user_id=$row['users_id'];
-		$this->tache_ticket($date,$time->format('%d jours %hh %mmin'),  $this->get_user($user_id),$description);
-	}	
-	
+		$this->tache_ticket($date,$time,  $this->get_user($user_id),$description);
+                $taskid=$row['id'];
+            }
+        }
+        
+        $sql="UPDATE glpi_plugin_rapportinter_rdidetails  SET tache_deja_fait='$taskid' WHERE ticket_id=$this->id AND name='$this->filename' ";
+	$DB->query($sql) or die($DB->error());
 
 }
 

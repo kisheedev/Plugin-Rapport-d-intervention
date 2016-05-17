@@ -31,6 +31,30 @@ class PluginRapportinterTicket extends CommonDBTM
 	return "$realname $firstname";
     }
     
+   static function get_last_task($id){
+        global $DB;
+        $sql="SELECT `tache_deja_fait` FROM `glpi_plugin_rapportinter_rdidetails` WHERE ticket_id=$id ORDER BY glpi_plugin_rapportinter_rdidetails.date DESC";
+        $res=$DB->query($sql) or die($DB->error());
+        if($DB->numrows($res)>0){
+            $row=$DB->fetch_assoc($res);
+            return $row['tache_deja_fait'];
+        }
+        else 
+            return 0;
+    }
+    
+    static function get_realtime($id){
+        global $DB;
+        $last_task=  self::get_last_task($id);
+        $sql="SELECT SUM(actiontime) AS realtime FROM `glpi_tickettasks` WHERE `tickets_id`=$id AND `id`>$last_task";
+        $res=$DB->query($sql) or die ($DB->error());
+        $row=$DB->fetch_assoc($res);
+        if($row['realtime']==NULL)
+            return 0.25;
+        else
+            return self::temps_passe ($row['realtime']);
+    }
+            
     
     function getTabNameForItem(CommonGLPI $item, $withtemplate=0) 
         {
@@ -53,19 +77,21 @@ class PluginRapportinterTicket extends CommonDBTM
                 global $DB;
                
                 $id=$_GET['id'];
-                $sql="SELECT COUNT(*) FROM glpi_documents WHERE tickets_id=$id AND mime='application/pdf'";
+                $sql="SELECT COUNT(*) FROM glpi_documents WHERE tickets_id=$id AND mime='application/pdf' AND name='RDI_$id'";
                 $res = $DB->query($sql) or die($DB->error());
-                $row = $DB->fetch_assoc($res);	
+                $row = $DB->fetch_assoc($res);
                 if($row['COUNT(*)']>=1){
-                    $sql="SELECT glpi_documents.id AS docid,"
-                            ."glpi_tickets.entities_id AS entities,"
-                            ."glpi_documents.date_mod AS date, "
-                            ."glpi_documents.users_id AS user "
-                            ."FROM glpi_documents INNER JOIN glpi_tickets ON glpi_documents.tickets_id=glpi_tickets.id WHERE tickets_id=$id AND mime='application/pdf'  ORDER BY glpi_documents.date_mod ASC ";
-                        $res=$DB->query($sql);
+                    $sql="SELECT DISTINCT glpi_documents.id AS docid,"
+                            ."glpi_plugin_rapportinter_rdidetails.date AS date, "
+                            ."glpi_plugin_rapportinter_rdidetails.technicians AS user, "
+                            ."glpi_plugin_rapportinter_rdidetails.realtime AS realtime "
+                            ."FROM glpi_documents INNER JOIN glpi_plugin_rapportinter_rdidetails ON glpi_documents.filename=glpi_plugin_rapportinter_rdidetails.filename WHERE tickets_id=$id AND mime='application/pdf'  ORDER BY glpi_plugin_rapportinter_rdidetails.date ASC ";
+                        $res=$DB->query($sql) or die ($DB->error());
+                        $somme=0;
                         echo "<table id='tabPlugin'>
                                 <tr>
                                     <th>Date</th>
+                                    <th>Temps passé (trajet inclus)</th>
                                     <th>Intervenants</th>
                                     <th>Fichier</th>
                                 </tr>";
@@ -73,24 +99,36 @@ class PluginRapportinterTicket extends CommonDBTM
                             $docid=$row['docid'];
                         echo    '<tr>
                                     <td>'.$row['date'].'</td>
-                                    <td>'.self::get_user($row['user']).'</td>
+                                    <td>'.$row['realtime'].'</td>';
+                                    $somme+=$row['realtime'];
+                        echo       '<td>'.self::get_user($row['user']).'</td>
                                     <td>'."<a href='' target='popup' onclick=window.open('../front/document.send.php?docid=$docid','name',width=600,height=400)><img src='../plugins/rapportinter/pics/pdf-dist.png'> Rapport</a></td>
                                 </tr>";
                         }
+                        echo "<tr id='total'>
+                                <td >Total :</td>
+                                <td>$somme</td>
+                             </tr>";   
                         echo "</table>";
                         echo "<link rel='stylesheet' type='text/css' href='../plugins/rapportinter/lib/table.css' /> ";
 
 
                 }
                 if(PluginRapportinterProfile::PeutCree()){
+                    $last_task=self::get_last_task($id);
+                    $realtime=self::get_realtime($id);
+                    //echo self::arrondi(0.25,1,3);
+
                     echo"                          
                             <form method='POST' action='../plugins/rapportinter/front/export.php'> 
-                                <input id='id_ticket' type='hidden' name='id'  value=$id />
-                                <input id='sigdata'type='hidden' name='signature'  value=''/>
+                                <input id='id_ticket' type='hidden' name='id'  value='$id' />
+                                <input id='sigdata'   type='hidden' name='signature'  value=''/>
+                                <input id='realtime' type='hidden' name='realtime' value='$realtime'/>
+                                <input id='last_task' type='hidden' name='last_task' value='$last_task'/>
 
                                 <script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js'></script>
                                 <p>Prévisualisation du rapport:</p>
-                                <iframe src='../plugins/rapportinter/inc/rapport_previsu.class.php?id=$id' width='80%'; height='1000' align='middle'></iframe>
+                                <iframe src='../plugins/rapportinter/inc/rapport_previsu.class.php?id=$id&last_task=$last_task&realtime=$realtime' width='80%'; height='1000' align='middle'></iframe>
                                 <p>Observation(s):</p>
                                 <textarea name='observation' style='width:80%; height:100px;'></textarea>      
                                 <p>Signature :</p>
@@ -122,6 +160,64 @@ class PluginRapportinterTicket extends CommonDBTM
         }
         return true;
         }
-       
+static function temps_passe($time)
+{
+    date_default_timezone_set('UTC');
+    $t=date('h', $time);
+    $i=  date('i',$time);
+    if($i>1)
+        $t=$t+1;
+    $t=$t/2;
+    $t=$t*0.25;
+    $t=$t-0.01;
+   
+    
+    $t=  self::arrondi($t);
+    if($t>=0.25)
+        return $t;
+    else
+        return 0.25;
+}
+static function arrondi($nombre,$niveau = 1, $mode =1 )
+{
+    $paliers = array();	
+    $paliers[]=0;
+    $nb_valeurs = 4*$niveau;
+    $base = 1/$nb_valeurs;
+    for ($i = 0; $i <= $nb_valeurs; $i++)
+    {
+        $paliers[] = $base*$i;	
+    }
+    $nb_paliers = count($paliers);
+    $entier = intval($nombre);
+    $decimal = $nombre - $entier;
+    $ajustement = 0;
+    $i =1;
+    $trouve = false;
+    while (($trouve === false) and ($i < $nb_paliers))
+    {
+        $v_min = $paliers[$i];
+        $v_max = $paliers[$i+1];
+        if (($decimal >= $v_min) and ($decimal < $v_max))
+        {
+            switch ($mode)
+            {
+            case 1:
+            $ajustement = $paliers[$i+1];
+            break;
+            case 2:
+            $ajustement = $paliers[$i];	
+            break;
+            case 3:
+            $ajustement = ($paliers[$i]+ $paliers[$i+1]) / 2;	
+            break;
+            }
+            $trouve = true;
+        }
+        $i++;
+    }	
+
+    return $entier + $ajustement;	
+}
 
 }

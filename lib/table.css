@@ -22,3 +22,7 @@ and open the template in the editor.
 #tabPlugin th{
     background-color: #BDBDBD;
 }
+
+#tabPlugin #total td{
+    background-color: #D8D8D8;
+}

@@ -47,10 +47,14 @@ $last_task= $_POST['last_task'];
             $pdf->affiche_toutes_les_taches();
             $pdf->fin_de_page();
             $pdf->Output($chemin,'F');
+			ob_end_clean();
             fclose($monfichier);
             unlink(GLPI_ROOT.'/files/_tmp/sig.svg');
             envoi_mail($filename,$id);
-            header('Location:http://support.rsm-c.com/front/ticket.form.php?id='.$id);
+            
+            $sql="UPDATE `glpi_tickets` SET `itilcategories_id`=1 WHERE id=$id";
+            $DB->query($sql) or die ($DB->error());
+            header ("Location: $_SERVER[HTTP_REFERER]" );
             
 }
 

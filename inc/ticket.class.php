@@ -54,6 +54,19 @@ class PluginRapportinterTicket extends CommonDBTM
         else
             return self::temps_passe ($row['realtime']);
     }
+    
+    static function can_create_report($id){
+        global $DB;
+        $last_task=  self::get_last_task($id);
+        $sql="SELECT SUM(actiontime) AS realtime FROM `glpi_tickettasks` WHERE `tickets_id`=$id AND `id`>$last_task";
+        $res=$DB->query($sql) or die ($DB->error());
+        $row=$DB->fetch_assoc($res);
+        if($row['realtime']==NULL)
+            return FALSE;
+        else            
+            return true;
+        
+        }
             
     
     function getTabNameForItem(CommonGLPI $item, $withtemplate=0) 
@@ -114,11 +127,11 @@ class PluginRapportinterTicket extends CommonDBTM
 
 
                 }
-                if(PluginRapportinterProfile::PeutCree()){
+                if(PluginRapportinterProfile::PeutCree() && self::can_create_report($id)){
                     $last_task=self::get_last_task($id);
                     $realtime=self::get_realtime($id);
-                    //echo self::arrondi(0.25,1,3);
 
+                    
                     echo"                          
                             <form method='POST' action='../plugins/rapportinter/front/export.php'> 
                                 <input id='id_ticket' type='hidden' name='id'  value='$id' />
@@ -153,17 +166,21 @@ class PluginRapportinterTicket extends CommonDBTM
                                         });                                   
                                     });
                                 </script>
-                                <button type='submit' style='background-color:#FEC95C; color:#8f5a0a; padding:5px; margin:10px; font:bold 12px Arial, Helvetica' >Générer le rapport</button>
-                            </form>";
+                                <button type='submit' style='background-color:#FEC95C; color:#8f5a0a; padding:5px; margin:10px; font:bold 12px Arial, Helvetica' >Générer le rapport</button>";
+                                Html::closeForm();
                 }
+                else 
+                    echo "<p>Pas de nouvelle tâche(s) depuis le dernier rapport.</p>";
             
         }
         return true;
         }
+        
+        
 static function temps_passe($time)
 {
     date_default_timezone_set('UTC');
-    $t=date('h', $time);
+    $t=date('H', $time);
     $i=  date('i',$time);
     if($i>1)
         $t=$t+1;

@@ -1,0 +1,48 @@
+      <root>
+            <name>Rapport d'intervention</name>
+            <key>rapportintervention</key>
+            <state>stable</state>
+            <logo>http://www.rsm-c.com/images/logo_rsm.png</logo>
+            <description>
+               <short>
+                  <fr>Ce plugin vous permet de génerer un rapport d'intervention au format PDF</fr>
+                  <lang>...</lang>
+               </short>
+               <long>
+                  <en>Ce plugin vous permet de génerer un rapport d'intervention au format PDF, le client pourra mettre une observation sur votre intervention et pourra le signer s'il lui convient </en>
+                  <lang>...</lang>
+               </long>
+            </description>
+            <homepage>http://www.rsm-c.com</homepage>
+            <download>https://github.com/hichem95/Plugin-Rapport-d-intervention/archive/master.zip</download>
+            <issues>http://link/to/your/issues</issues>
+            <readme>http://link/to/your/readme</readme>
+            <authors>
+               <author>Hichem MELIK</author>
+            </authors>
+            <versions>
+               <version>
+                  <num>1.0.0</num>
+                  <compatibility>0.90</compatibility>
+               </version>
+            </versions>
+            <langs>
+               <lang>fr_FR</lang>
+               <lang>...</lang>
+            </langs>
+            <license>GPL v3+</license>
+            <tags>
+               <en>
+                  <tag>tag1</tag>
+               </en>
+               <lang>
+                  <tag>tag1</tag>
+               </lang>
+            </tags>
+            <screenshots>
+               <screenshot>http://link/to/your/screenshot</screenshot>
+               <screenshot>http://link/to/your/screenshot</screenshot>
+               <screenshot>...</screenshot>
+            </screenshots>
+         </root>
+      

@@ -50,7 +50,7 @@ $last_task= $_POST['last_task'];
 			ob_end_clean();
             fclose($monfichier);
             unlink(GLPI_ROOT.'/files/_tmp/sig.svg');
-            envoi_mail($filename,$id);
+
             
             $sql="UPDATE `glpi_tickets` SET `itilcategories_id`=1 WHERE id=$id";
             $DB->query($sql) or die ($DB->error());
@@ -60,49 +60,7 @@ $last_task= $_POST['last_task'];
 
 
 
-function envoi_mail($filename,$id){
-            global $DB;
-            ini_set("SMTP","172.30.2.3"); 
-            $sql="SELECT name FROM glpi_users WHERE id=(SELECT users_id FROM `glpi_tickets_users` WHERE `tickets_id`=$id AND type=1)";
-            $res=$DB->query($sql) or die($DB->error());
-            $row=$DB->fetch_assoc($res);
-            $mail_to = $row['name']; //Destinataire  
-            //echo $mail_to;
-            $from_mail = $_SESSION['glpiname']; //Expediteur  
-            $from_name = "RSM-Consulting"; //Votre nom, ou nom du site  
-            $reply_to = "helpdesk@rsm-c.com"; //Adresse de réponse  
-            ini_set("sendmail_from",$from_mail);
-            $subject = "Rapport d'intervention $id";      
-            $path = GLPI_ROOT."/files/PDF/";  
-            $typepiecejointe = filetype($path.$filename);  
-            $data = chunk_split( base64_encode(file_get_contents($path.$filename)) );  
-            //Génération du séparateur  
-            
-            $boundary = md5(uniqid(time()));  
-            $entete = "From: $from_mail \n";  
-            $entete .= "Reply-to: $reply_to \n";  
-            $entete .= "X-Priority: 1 \n";  
-            $entete .= "MIME-Version: 1.0 \n";  
-            $entete .= "Content-Type: multipart/mixed; boundary=\"$boundary\" \n";  
-            $entete .= " \n";  
-            $message  = "--$boundary \n";  
-            $message .= "Content-Type: text/html; charset=\"iso-8859-1\" \n";  
-            $message .= "Content-Transfer-Encoding:8bit \n";  
-            $message .= "\n";  
-            $message .= "Bonjour,  
-            Veuillez trouver ci-joint le rapport d'intervention.
-             Cordialement";  
-            $message .= "\n";  
-            $message .= "--$boundary \n";  
-            $message .= "Content-Type: $typepiecejointe; name=\"$filename\" \n";  
-            $message .= "Content-Transfer-Encoding: base64 \n";  
-            $message .= "Content-Disposition: attachment; filename=\"$filename\" \n";  
-            $message .= "\n";  
-            $message .= $data."\n";  
-            $message .= "\n";  
-            $message .= "--".$boundary."--";  
-            mail($mail_to, $subject, $message, $entete); 
-}
+
 
 ?>
 
